@@ -46,9 +46,9 @@ while [[ $# -gt 0 ]]; do
     shift
 done
 
-[ -z "${service}" ] && service=sidecar-injector-webhook-svc
-[ -z "${secret}" ] && secret=sidecar-injector-webhook-certs
-[ -z "${namespace}" ] && namespace=default
+[ -z "${service}" ] && service=tolerations-mutator
+[ -z "${secret}" ] && secret=webhook-certs
+[ -z "${namespace}" ] && namespace=mutating-webhook
 
 if [ ! -x "$(command -v openssl)" ]; then
     echo "openssl not found"
@@ -79,10 +79,10 @@ openssl genrsa -out "${tmpdir}"/server-key.pem 2048
 openssl req -new -key "${tmpdir}"/server-key.pem -subj "/CN=${service}.${namespace}.svc" -out "${tmpdir}"/server.csr -config "${tmpdir}"/csr.conf
 
 # clean-up any previously created CSR for our service. Ignore errors if not present.
-kubectl delete csr ${csrName} 2>/dev/null || true
+oc delete csr ${csrName} 2>/dev/null || true
 
 # create  server cert/key CSR and  send to k8s API
-cat <<EOF | kubectl create -f -
+cat <<EOF | oc create -f -
 apiVersion: certificates.k8s.io/v1beta1
 kind: CertificateSigningRequest
 metadata:
@@ -99,16 +99,18 @@ EOF
 
 # verify CSR has been created
 while true; do
-    if ! kubectl get csr ${csrName}; then
+    if oc get csr ${csrName}; then
+        echo "csr found"
         break
     fi
 done
 
 # approve and fetch the signed certificate
-kubectl certificate approve ${csrName}
+echo "Approving csr ${csrName}"
+oc adm certificate approve ${csrName}
 # verify certificate has been signed
 for _ in $(seq 10); do
-    serverCert=$(kubectl get csr ${csrName} -o jsonpath='{.status.certificate}')
+    serverCert=$(oc get csr ${csrName} -o jsonpath='{.status.certificate}')
     if [[ ${serverCert} != '' ]]; then
         break
     fi
@@ -122,8 +124,8 @@ echo "${serverCert}" | openssl base64 -d -A -out "${tmpdir}"/server-cert.pem
 
 
 # create the secret with CA cert and server cert/key
-kubectl create secret generic ${secret} \
+oc create secret generic ${secret} \
         --from-file=key.pem="${tmpdir}"/server-key.pem \
         --from-file=cert.pem="${tmpdir}"/server-cert.pem \
         --dry-run -o yaml |
-    kubectl -n ${namespace} apply -f -
+    oc -n ${namespace} apply -f -

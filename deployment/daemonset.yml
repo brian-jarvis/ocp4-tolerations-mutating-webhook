@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  namespace: mutating-webhook
+  name: tolerations-mutator
+  labels:
+    app: tolerations-mutator
+spec:
+  selector:
+    matchLabels:
+      app: tolerations-mutator
+  template:
+    metadata:
+      name: tolerations-mutator
+      labels:
+        app: tolerations-mutator
+    spec:
+      serviceAccountName: mutator
+      containers:
+      - name: mutator 
+        image: quay.io/bjarvis/tolerations-mutator:latest
+        imagePullPolicy: Always
+        args:
+          - -cfgFile=/etc/webhook/config/mutation.yml
+          - -tlsCertFile=/etc/webhook/certs/cert.pem
+          - -tlsKeyFile=/etc/webhook/certs/key.pem
+          - -alsologtostderr
+          - -v=4
+          - 2>&1
+        ports:
+          - name: https
+            containerPort: 8443
+        volumeMounts:
+          - name: webhook-certs
+            mountPath: /etc/webhook/certs
+            readOnly: true
+          - name: webhook-config
+            mountPath: /etc/webhook/config
+      volumes:
+      - name: webhook-certs
+        secret:
+          defaultMode: 420
+          secretName: webhook-certs
+      - name: webhook-config
+        configMap:
+          name: tolerations-mutator-config
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 50%
+  revisionHistoryLimit: 2

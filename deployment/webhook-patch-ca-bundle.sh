@@ -4,11 +4,10 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-CA_BUNDLE=$(kubectl config view --raw --minify --flatten -o jsonpath='{.clusters[].cluster.certificate-authority-data}')
+# CA_BUNDLE=$(oc config view --raw --minify --flatten -o jsonpath='{.clusters[].cluster.certificate-authority-data}')
 
-if [ -z "${CA_BUNDLE}" ]; then
-    CA_BUNDLE=$(kubectl get secrets -o jsonpath="{.items[?(@.metadata.annotations['kubernetes\.io/service-account\.name']=='default')].data.ca\.crt}")
-fi
+# CA_BUNDLE=$(oc get secrets -o jsonpath="{.items[?(@.metadata.annotations['kubernetes\.io/service-account\.name']=='default')].data.ca\.crt}")
+CA_BUNDLE=$(kubectl get configmap -n kube-system extension-apiserver-authentication -o=jsonpath='{.data.client-ca-file}' | base64 | tr -d '\n')
 
 export CA_BUNDLE
 

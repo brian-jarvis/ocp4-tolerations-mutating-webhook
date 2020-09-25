@@ -1,3 +1,14 @@
+
+This project started from https://github.com/morvencao/kube-mutating-webhook-tutorial, I have left original readme below.  
+
+From that project the webserver was changed to mutate tolerations on a pod instead of injecting a container.  I removed the container injection bits, but using the original example one could easily restore it.
+
+The base image was changed to use the Red Hat UBI image.
+
+Additionally changes were made to use an APIService ingress from the apiserver.  Some small changes were also made to be OpenShift specific.
+
+
+
 # Kubernetes Mutating Webhook for Sidecar Injection
 
 [![GoDoc](https://godoc.org/github.com/morvencao/kube-mutating-webhook-tutorial?status.svg)](https://godoc.org/github.com/morvencao/kube-mutating-webhook-tutorial)
