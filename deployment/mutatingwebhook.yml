@@ -4,6 +4,8 @@ metadata:
   name: mutationservices.admission.online.openshift.io
   labels:
     app: tolerations-mutator
+  annotations:
+    service.beta.openshift.io/inject-cabundle: "true"
 webhooks:
 - name: mutationservices.admission.online.openshift.io
   clientConfig:
@@ -11,7 +13,6 @@ webhooks:
       namespace: default
       name: kubernetes
       path: /apis/admission.online.openshift.io/v1beta1/mutationservices
-    caBundle: ${CA_BUNDLE}
   rules:
   - operations: ["CREATE", "UPDATE"]
     apiGroups: [""]

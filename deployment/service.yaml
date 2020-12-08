@@ -5,6 +5,8 @@ metadata:
   namespace: mutating-webhook
   labels:
     app: tolerations-mutator
+  annotations:
+    service.beta.openshift.io/serving-cert-secret-name: webhook-certs
 spec:
   ports:
   - port: 443

@@ -27,11 +27,6 @@
 9. Deploy the apiservice
 10. Deploy the mutatingwebhook
 
-cat deployment/mutatingwebhook.yml | ./deployment/webhook-patch-ca-bundle.sh | oc create -f -
-
-
-cat deployment/apiservice.yml | ./deployment/webhook-patch-ca-bundle.sh | oc create -f -
-
 
 ## Test it
 11. Create project to test in
