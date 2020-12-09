@@ -10,14 +10,13 @@ Additionally changes were made to use an APIService ingress from the apiserver. 
 ## Steps to deploy
 ```
 cd ./deployment
-oc create -f ./namespace.yml -f ./serviceaccount.yml -f ./service.yaml -f ./configmap.yml -f ./nginxconfigmap.yml -f ./webhook-crd.yml 
-oc auth reconcile -f rbac.yml
+oc auth reconcile -f ./rbac.yml
+oc create -f ./namespace.yml -f ./serviceaccount.yml \
+  -f ./service.yaml -f ./configmap.yml \
+  -f ./nginxconfigmap.yml -f ./webhook-crd.yml \
+  -f ./apiservice.yml -f ./mutatingwebhook.yml \
+  -f ./daemonset.yml
 
-cat ./mutatingwebhook.yml | ./webhook-patch-ca-bundle.sh | oc create -f -
-cat ./apiservice.yml | ./webhook-patch-ca-bundle.sh | oc create -f -
-
-./webhook-create-signed-cert.sh 
-oc create -f ./daemonset.yml
 ```
 
 
